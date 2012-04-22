@@ -1,0 +1,19 @@
+twitter_authentication:
+    pattern:  /twitterauthentication/{redirectRoute}
+    defaults: { _controller: ObjectsAPIBundle:Twitter:index }
+
+twitter_callback:
+    pattern:  /twitter/{redirectRoute}
+    defaults: { _controller: ObjectsAPIBundle:Twitter:twitter }
+
+saveTwitterTokens:
+    pattern:  /twitter/save
+    defaults: { _controller: ObjectsAPIBundle:Twitter:saveTwitterTokens }
+
+Facebook_token:
+    pattern:  /facebook/token/{route}
+    defaults: { _controller: ObjectsAPIBundle:Facebook:token }
+
+Facebook_Data:
+    pattern:  /facebook/user/{route}
+    defaults: { _controller: ObjectsAPIBundle:Facebook:getFacebookUser }

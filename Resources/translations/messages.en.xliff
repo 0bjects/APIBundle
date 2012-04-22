@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" original="">
+        <body>
+            <trans-unit id="1">
+                <source>twitter connection error</source>
+                <target>Could not connect to Twitter please</target>
+            </trans-unit>
+            <trans-unit id="2">
+                <source>try again</source>
+                <target>try again</target>
+            </trans-unit>
+            <trans-unit id="3">
+                <source>read error</source>
+                <target>Unable to read from the file</target>
+            </trans-unit>
+            <trans-unit id="4">
+                <source>write error</source>
+                <target>Unable to write in the file</target>
+            </trans-unit>
+            <trans-unit id="5">
+                <source>saved successfully</source>
+                <target>saved successfully</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
