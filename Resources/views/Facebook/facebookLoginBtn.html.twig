@@ -1,0 +1,23 @@
+<fb:login-button scope="email,publish_stream,offline_access,manage_pages"  size="{{ size }}" onlogin="window.location.href='{{ url }}';">
+    {{ text }}
+</fb:login-button>
+
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId: '{{ fb_app_id }}',
+      secret: '{{ fb_app_secret }}',
+      cookie: true,
+      xfbml: true,
+      oauth: true
+    });
+
+  };
+  (function() {
+    var e = document.createElement('script'); e.async = true;
+    e.src = document.location.protocol +
+      '//connect.facebook.net/en_US/all.js';
+    document.getElementById('fb-root').appendChild(e);
+  }());
+</script>

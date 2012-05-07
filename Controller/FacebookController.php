@@ -1,30 +1,28 @@
 <?php
 
-/**
- * @author mirehan
- * 
- */
-
 namespace Objects\APIBundle\Controller;
 
 require_once __DIR__ . '/../../../../vendor/FacebookApiLibrary/src/facebook.php';
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\Yaml\Dumper;
 use Facebook;
 
+/**
+ * @author mirehan
+ */
 class FacebookController extends Controller {
 
     public function facebookLoginAction($size, $text) {
         $url = $this->generateUrl("Facebook_login_check");
-        return $this->render('ObjectsAPIBundle:Facebook:facebookLoginBtn.html.twig', array('fb_app_id' => $this->container->getParameter('fb_app_id'), 'facebook_secret' => $this->container->getParameter('fb_app_secret'),
+        return $this->render('ObjectsAPIBundle:Facebook:facebookLoginBtn.html.twig', array('fb_app_id' => $this->container->getParameter('fb_app_id'), 'fb_app_secret' => $this->container->getParameter('fb_app_secret'),
                     'url' => $url, 'size' => $size, 'text' => $text));
     }
 
-    public function facebookAction(Request $request) {
+    public function facebookAction() {
+        $request = $this->getRequest();
         $facebook = new \Facebook(array(
                     'appId' => $this->container->getParameter('fb_app_id'),
                     'secret' => $this->container->getParameter('fb_app_secret'),
@@ -73,6 +71,8 @@ class FacebookController extends Controller {
                     $yaml = $dumper->dump($value, 3);
                     //try to put the data dump into the file
                     if (@file_put_contents($configFile, $yaml) !== FALSE) {
+                        //clear the cache for the new configurations to take effect
+                        exec('nohup ' . PHP_BINDIR . '/php ' . __DIR__ . '/../../../../app/console cache:clear -e prod');
                         //set the success flag
                         $session = $request->getSession();
                         $session->setFlash('notice', 'Your configurations were saved');
@@ -149,15 +149,98 @@ class FacebookController extends Controller {
         curl_close($ch);
         return $result;
     }
-    
+
     /**
      * this action returns the facebook application id
      * used to render in any iframe that needs the application id
      * @author Mahmoud
      * @return \Symfony\Component\HttpFoundation\Response the facebook application id
      */
-    public function getFacbookApplicationIdAction(){
+    public function getFacbookApplicationIdAction() {
         return new Response($this->container->getParameter('fb_app_id'));
+    }
+
+    public function tokenAction($route) {
+        $request = $this->getRequest();
+
+        $returnURL = $request->query->get('returnURL');
+        $my_url = $this->generateUrl('Facebook_token', array('route' => $route, 'returnURL' => $returnURL), true);
+        $code = $request->query->get('code');
+        $error = $request->query->get('error_reason');
+        $session = $request->getSession();
+        $session->set('facebook_returnURL', $returnURL);
+
+        if (isset($error)) {
+
+            $session->setFlash('facebook_error', $error);
+            return $this->redirect($this->generateUrl('Facebook_Data', array('route' => $route)));
+        } else {
+            if ($request->query->get('state') == FACEBOOK_APP_STATE) {
+                $token_url = 'https://graph.facebook.com/oauth/access_token?'
+                        . 'client_id=' . FACEBOOK_APP_ID . '&redirect_uri=' . urlencode($my_url)
+                        . '&client_secret=' . FACEBOOK_APP_SECRET . '&code=' . $code;
+
+                $response = @file_get_contents($token_url);
+                $params = null;
+                parse_str($response, $params);
+                if ($params['access_token']) {
+                    $session->setFlash('facebook_access_token', $params['access_token']);
+                } else {
+                    $session->setFlash('facebook_error', 'Invalid access token');
+                }
+
+                return $this->redirect($this->generateUrl('Facebook_Data', array('route' => $route)));
+            } else {
+                $session->setFlash('facebook_error', MISMATCH_FACEBOOK_STATE);
+                return $this->redirect($this->generateUrl('Facebook_Data', array('route' => $route)));
+            }
+        }
+    }
+
+    public function getFacebookUserAction($route) {
+        $request = $this->getRequest();
+
+        $session = $request->getSession();
+        //retrive from the session access token
+        $accessToken = $session->getFlash('facebook_access_token');
+        //retrive from the session facebook error
+        $facebookError = $session->getFlash('facebook_error');
+
+        if ($facebookError) {
+            $session->setFlash('facebook_error', $facebookError);
+            return $this->redirect($this->generateUrl($route));
+        }
+        if ($accessToken) {
+
+            $graph_url = 'https://graph.facebook.com/me?access_token=' . $accessToken;
+
+            $faceUser = json_decode(file_get_contents($graph_url));
+            $session->setFlashes(array('facebook_access_token' => $accessToken, 'facebook_user' => $faceUser));
+            return $this->redirect($this->generateUrl($route));
+        }
+    }
+
+    /**
+     * static method that post on user wall
+     * @author Mirehan
+     * @param type $accessToken 
+     * @param type $message
+     * @param type $picture
+     * @param type $link
+     * @return Response 
+     */
+    public static function postOnUserWallAndFeedAction($accessToken, $message, $name, $link, $picture) {
+
+        $fieldsString = "access_token=$accessToken&message=$message&name=$name&picture=$picture";
+        $fieldsString.="&link=$link&description=" . FACEBOOK_APP_DESCRIPTION;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://graph.facebook.com/me/feed");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fieldsString);
+        curl_exec($ch);
+        curl_close($ch);
+        return new Response('postOnUserWallAndFeed');
     }
 
 }

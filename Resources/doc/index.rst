@@ -1,3 +1,5 @@
+Installation instructions:
+
 add this lines to your deps file:
 
 [FacebookApiLibrary]
@@ -26,4 +28,16 @@ ObjectsAPIBundle:
     resource: "@ObjectsAPIBundle/Resources/config/routing.yml"
     prefix:   /
 
-enable the translation
+enable the translation in your config.yml file :
+
+framework:
+    esi:             ~
+    translator:      { fallback: %locale% }
+
+configure the parameters in Resources/config/config.yml file
+
+IMPORTANT NOTE:
+***********************
+remove the .git folder in src/Objects/APIBundle if you are going to make project specific changes
+so that you do not push them to the project repo
+***********************

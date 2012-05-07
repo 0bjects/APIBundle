@@ -3,7 +3,6 @@
 namespace Objects\APIBundle\Controller;
 
 /* load library. */
-
 require_once __DIR__ . '/../libraries/abraham/twitteroauth.php';
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -19,16 +18,20 @@ class TwitterController extends Controller {
 
     /**
      * the default Authentication route any new request to twitter has to go throw this action first
-     * @param string $redirectRoute the route to redirect to after connecting to twitter it has to not contain _
+     * @param string $redirectRoute the route to redirect to after connecting to twitter
      */
     public function indexAction($redirectRoute) {
+        //get the session object
         $session = $this->getRequest()->getSession();
+        //get the translator
         $translator = $this->get('translator');
+        //get the container
+        $container = $this->container;
         /* Build TwitterOAuth object with client credentials. */
-        $connection = new TwitterOAuth($this->container->getParameter('consumer_key'), $this->container->getParameter('consumer_secret'));
+        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'));
 
         /* Get temporary credentials. */
-        $request_token = @$connection->getRequestToken($this->generateUrl('twitter_callback', array('redirectRoute' => $redirectRoute), TRUE));
+        $request_token = @$connection->getRequestToken($this->generateUrl('twitter_callback', array(), TRUE));
 
         /* If last connection failed don't display authorization link. */
         switch ($connection->http_code) {
@@ -36,6 +39,7 @@ class TwitterController extends Controller {
                 /* Save temporary credentials to session. */
                 $session->set('oauth_token', $request_token['oauth_token']);
                 $session->set('oauth_token_secret', $request_token['oauth_token_secret']);
+                $session->set('redirectRoute', $redirectRoute);
 
                 /* Build authorize URL and redirect user to Twitter. */
                 $url = $connection->getAuthorizeURL($request_token['oauth_token']);
@@ -50,17 +54,22 @@ class TwitterController extends Controller {
     /**
      * the call back url that twitter will access
      * on success redirect to another action(signin or signup)
-     * and puts the user oauth_token and oauth_token_secret in the session
+     * and puts the user oauth_token, oauth_token_secret and twitter id in the session
      */
-    public function twitterAction($redirectRoute) {
+    public function twitterAction() {
+        //get the request object
         $request = $this->getRequest();
+        //get the session object
         $session = $request->getSession();
+        //get the container object
+        $container = $this->container;
+        //get the translator object
         $translator = $this->get('translator');
         /* Create TwitteroAuth object with app key/secret and token key/secret from default phase */
-        $connection = @new TwitterOAuth($this->container->getParameter('consumer_key'), $this->container->getParameter('consumer_secret'), $session->get('oauth_token'), $session->get('oauth_token_secret'));
+        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $session->get('oauth_token'), $session->get('oauth_token_secret'));
 
         /* Request access tokens from twitter */
-        $access_token = @$connection->getAccessToken($request->get('oauth_verifier'));
+        $access_token = $connection->getAccessToken($request->get('oauth_verifier'));
 
         /* If HTTP response is 200 continue otherwise send to connect page to retry */
         if (200 == $connection->http_code) {
@@ -69,20 +78,23 @@ class TwitterController extends Controller {
             $session->set('oauth_token_secret', $access_token['oauth_token_secret']);
             $session->set('twitterId', $access_token['user_id']);
             //redirect the user to another action(signin or signup) to hide the parameters in the url
-            return $this->redirect($this->generateUrl($redirectRoute, array(), TRUE));
+            return $this->redirect($this->generateUrl($session->get('redirectRoute'), array(), TRUE));
         } else {
             //something went wrong go to connect page again
             $session->clear();
-            return new Response($translator->trans('twitter connection error') . ' <a href="' . $this->generateUrl('twitter_authentication', array('redirectRoute' => $redirectRoute), TRUE) . '">' . $translator->trans('try again') . '</a>');
+            return new Response($translator->trans('twitter connection error') . ' <a href="' . $this->generateUrl('twitter_authentication', array('redirectRoute' => $session->get('redirectRoute')), TRUE) . '">' . $translator->trans('try again') . '</a>');
         }
     }
 
     /**
-     * this action will save the user twitter tokens in the configuration file
+     * this action will save the user twitter tokens from the session in the configuration file
      */
     public function saveTwitterTokensAction() {
+        //get the request object
         $request = $this->getRequest();
+        //get the session object
         $session = $request->getSession();
+        //get the translator object
         $translator = $this->get('translator');
         //the configuration file path
         $configFile = __DIR__ . '/../Resources/config/config.yml';
@@ -108,6 +120,8 @@ class TwitterController extends Controller {
             $yaml = $dumper->dump($value, 3);
             //try to put the data dump into the file
             if (@file_put_contents($configFile, $yaml) !== FALSE) {
+                //clear the cache for the new configurations to take effect
+                exec('nohup ' . PHP_BINDIR . '/php ' . __DIR__ . '/../../../../app/console cache:clear -e prod');
                 //set the success message
                 $message = $translator->trans('saved successfully');
             } else {
@@ -123,15 +137,17 @@ class TwitterController extends Controller {
 
     /**
      * this fucntion will post the user twitts to twitter
-     * @author mahmoud
      * @param string $status the status to post for user max 140 char
-     * @return Response success or fail
+     * @return \Symfony\Component\HttpFoundation\Response success or fail
      */
     public function twittAction($status) {
+        //get the container object
+        $container = $this->container;
         //get a valid twitter connection of user
-        $connection = new TwitterOAuth($this->container->getParameter('consumer_key'), $this->container->getParameter('consumer_secret'), $this->container->getParameter('oauth_token'), $this->container->getParameter('oauth_token_secret'));
+        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
         //get user data
         @$connection->post('statuses/update', array('status' => $status));
+        //check if connection success with twitter
         if (200 == $connection->http_code) {
             //success twitt
             return new Response('success');
@@ -143,7 +159,6 @@ class TwitterController extends Controller {
 
     /**
      * twitt any status to twitter
-     * @author Mahmoud
      * @param string $status the status to twitt
      * @param string $consumerKey
      * @param string $consumerSecret
@@ -156,6 +171,7 @@ class TwitterController extends Controller {
         $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
         //get user data
         @$connection->post('statuses/update', array('status' => $status));
+        //check if connection success with twitter
         if (200 == $connection->http_code) {
             //success twitt
             return TRUE;
@@ -167,11 +183,13 @@ class TwitterController extends Controller {
 
     /**
      * this function will return the last $count twitted twitts
-     * @author Mahmoud
      * @param integer $count the number of twitts to retrieve
      * @return \Symfony\Component\HttpFoundation\Response the twitts with the js library to display them
      */
     public function getLastTwittsAction($count) {
+        //get the container object
+        $container = $this->container;
+        //get the request object
         $request = $this->getRequest();
         //create a new response for the user
         $response = new Response();
@@ -191,7 +209,7 @@ class TwitterController extends Controller {
         //the twitts ids array
         $twittsIds = array();
         //get a valid twitter connection of user
-        $connection = new TwitterOAuth($this->container->getParameter('consumer_key'), $this->container->getParameter('consumer_secret'), $this->container->getParameter('oauth_token'), $this->container->getParameter('oauth_token_secret'));
+        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
         //get user twitts
         $twitts = @$connection->get('statuses/user_timeline', array('count' => $count));
         //check if it is a success request
@@ -211,14 +229,65 @@ class TwitterController extends Controller {
                 }
                 //request the twitts formated
                 $twitts = @$connection->get('statuses/oembed', array('id' => $twittId, 'omit_script' => TRUE));
-                //check if it is a success request
+                //check if connection success with twitter
                 if (200 == $connection->http_code) {
                     //add the twitt content to the response
                     $response->setContent($response->getContent() . $twitts->html);
                 }
             }
         }
+        //return the response
         return $response;
+    }
+
+    /**
+     * get the user data
+     * @param string $consumerKey
+     * @param string $consumerSecret
+     * @param string $oauth_token the user token
+     * @param string $oauth_token_secret the user token secret
+     * @return mixed null or data of user
+     */
+    public static function getCredentials($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret) {
+        //get a valid twitter connection of user
+        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauth_token, $oauth_token_secret);
+        //get user data
+        $content = @$connection->get('account/verify_credentials');
+        //check if connection success with twitter
+        if (200 == $connection->http_code) {
+            return $content;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * get the user following accounts
+     * @param string $consumerKey
+     * @param string $consumerSecret
+     * @param string $oauth_token the user token
+     * @param string $oauth_token_secret the user token secret
+     * @param string the userId
+     * @return mixed null or a list of user following ids
+     */
+    public static function getFollowing($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret, $userId) {
+        //get a valid twitter connection of user
+        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauth_token, $oauth_token_secret);
+        //get user data
+        $content = @$connection->get('friends/ids', array('user_id' => $userId));
+        //check if connection success with twitter
+        if (200 == $connection->http_code) {
+            //check if we got any response
+            if ($content) {
+                //check if we have any ids
+                if (isset($content->ids)) {
+                    return $content->ids;
+                } else {
+                    return $content;
+                }
+            }
+        }
+        return NULL;
     }
 
 }

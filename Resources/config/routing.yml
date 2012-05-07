@@ -3,12 +3,20 @@ twitter_authentication:
     defaults: { _controller: ObjectsAPIBundle:Twitter:index }
 
 twitter_callback:
-    pattern:  /twitter/{redirectRoute}
+    pattern:  /twitter
     defaults: { _controller: ObjectsAPIBundle:Twitter:twitter }
 
-saveTwitterTokens:
+save_twitter_tokens:
     pattern:  /twitter/save
     defaults: { _controller: ObjectsAPIBundle:Twitter:saveTwitterTokens }
+
+twitt:
+    pattern: /twitt/{status}
+    defaults: { _controller: ObjectsAPIBundle:Twitter:twitt }
+
+get_last_twitts:
+    pattern: /twitts/{count}
+    defaults: { _controller: ObjectsAPIBundle:Twitter:getLastTwitts }
 
 Facebook_token:
     pattern:  /facebook/token/{route}
@@ -17,3 +25,15 @@ Facebook_token:
 Facebook_Data:
     pattern:  /facebook/user/{route}
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacebookUser }
+
+Facebook_login_btn:
+    pattern:  /fblogin/{size}/{text}
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookLogin }
+
+Facebook_login_check:
+    pattern:  /facebook/login
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebook }
+
+facebook_app_id:
+    pattern:  /facebook/app/id
+    defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }
