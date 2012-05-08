@@ -39,5 +39,5 @@ configure the parameters in Resources/config/config.yml file
 IMPORTANT NOTE:
 ***********************
 remove the .git folder in src/Objects/APIBundle if you are going to make project specific changes
-so that you do not push them to the project repo
+so that you do not push them to the bundle repo and remove the deps and deps.lock lines
 ***********************
