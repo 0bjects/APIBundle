@@ -1,0 +1,17 @@
+
+<script>
+{% if url is defined %}
+    //this script is rendered in the popup of facebook dialog to set url of the opener page to 
+    //new location that user is redirected to after authentication then close the popup
+      adjustParent("{{ url }}",function(){
+         self.close();
+      });
+function adjustParent (url,callback){
+    window.opener.document.location.href = url;
+    callback();
+        
+}
+{% else %}
+    self.close();
+{% endif %}
+    </script>

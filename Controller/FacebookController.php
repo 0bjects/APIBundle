@@ -15,6 +15,98 @@ use Facebook;
  */
 class FacebookController extends Controller {
 
+     /**
+     * this action take 
+     * @param Request $request
+     * @param string $facebookUserHandleRoute (route that will handle facebook user)
+     * @param string $permissions (facebook permissions require dseparated by ,)
+     * @param string $cssClass (css class for designer to add desired image)
+     * @param string $linkText (text written in the link)
+     * @return html facebook link with desired css class and text
+     
+     */
+    public function facebookButtonAction($facebookUserHandleRoute,$permissions, $cssClass='',$linkText = '') {
+        
+        $request = $this->getRequest();
+        //get the session object
+        $session = $request->getSession();
+        //set facebookUserHandleRoute in session (route of action that will go to after 
+        //action action that set user and its token in session
+        $session->set('facebookUserHandleRoute', $facebookUserHandleRoute);
+       
+        //get the container
+        $container = $this->container;
+         //redirect url after dialog is finished
+         $endDialogUrl=$this->generateUrl('facebook_end_dailog',array(),true);
+        //url to open facebook dialog 
+        $dialog_url = 'https://www.facebook.com/dialog/oauth?'
+                    . 'client_id='. $container->getParameter('fb_app_id')
+                    . '&redirect_uri=' . urlencode($endDialogUrl)
+                    . '&scope=' .$permissions
+                    . '&display=popup'
+                    . '&state='. $container->getParameter('fb_app_state');
+        
+        return $this->render('ObjectsAPIBundle:Facebook:facebookLink.html.twig', 
+                array('dialog_url' => $dialog_url, 'cssClass' => $cssClass,'text'=>$linkText));
+    }
+    /**
+     * at the end of facebook dialog facebook redirect to this action
+     * this action get access token of the logged user and then get facebook user
+     * set the access token and the user in the session
+     * @return script to redirect the original window to the action that will handle 
+     * the facebook user in the session and close facebook dialog popup 
+     */
+    public function endDialogAction() {
+        $request = $this->getRequest();
+         //get the session object
+        $session = $request->getSession();
+        //code come from facebook dialog that will be used to get the token
+        $code = $request->query->get('code');
+        $error = $request->query->get('error_reason');
+        
+        $facebookUserHandleRoute = $session->get('facebookUserHandleRoute');
+        
+        //get access token using code from facebook
+        if (isset($error)) {
+            $session->set('facebook_access_token', null);
+            $session->set('facebook_user' , null);
+            $session->set('facebook_error', 'FACEBOOK_ERROR');
+        } else {
+            //get the container
+            $container = $this->container;
+            
+            $my_url = $this->generateUrl('facebook_end_dailog',array(),true);
+            
+            if ($request->query->get('state') == $container->getParameter('fb_app_state')) {
+                $token_url = 'https://graph.facebook.com/oauth/access_token?'
+                        . 'client_id=' . $container->getParameter('fb_app_id') . '&redirect_uri=' . urlencode($my_url)
+                        . '&client_secret=' . $container->getParameter('fb_app_secret') . '&code=' . $code;
+
+                $response = @file_get_contents($token_url);
+                $params = null;
+                parse_str($response, $params);
+                if ($params['access_token']) {
+                    $session->set('facebook_error', null);
+                    $session->set('facebook_access_token', $params['access_token']);
+                    //get user and set it in session
+                    $graph_url = 'https://graph.facebook.com/me?access_token=' . $params['access_token'];
+                    $faceUser = json_decode(file_get_contents($graph_url));
+                    $session->set('facebook_user' , $faceUser);
+                    
+                } else {
+                    $session->set('facebook_access_token', null);
+                    $session->set('facebook_user' , null);
+                    $session->set('facebook_error', 'ACCESS_TOKEN_ERROR');
+                }
+            } else {
+                $session->set('facebook_access_token', null);
+                $session->set('facebook_user' , null);
+                $session->set('facebook_error', 'MISMATCH_FACEBOOK_STATE');
+            }
+            return $this->render('ObjectsAPIBundle:Facebook:facebookCloseWindow.html.twig', array('url' => $this->generateUrl($facebookUserHandleRoute,array(),true)));
+        }
+    }
+    
     public function facebookLoginAction($size, $text) {
         $url = $this->generateUrl("Facebook_login_check");
         return $this->render('ObjectsAPIBundle:Facebook:facebookLoginBtn.html.twig', array('fb_app_id' => $this->container->getParameter('fb_app_id'), 'fb_app_secret' => $this->container->getParameter('fb_app_secret'),
@@ -199,7 +291,7 @@ class FacebookController extends Controller {
 
     public function getFacebookUserAction($route) {
         $request = $this->getRequest();
-
+    
         $session = $request->getSession();
         //retrive from the session access token
         $accessToken = $session->getFlash('facebook_access_token');

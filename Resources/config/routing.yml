@@ -37,3 +37,7 @@ Facebook_login_check:
 facebook_app_id:
     pattern:  /facebook/app/id
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }
+    
+facebook_end_dailog:
+    pattern:  /facebookenddialog
+    defaults: { _controller: ObjectsAPIBundle:Facebook:endDialog }
