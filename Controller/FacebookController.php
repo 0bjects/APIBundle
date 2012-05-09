@@ -65,7 +65,7 @@ class FacebookController extends Controller {
 
         //get access token using code from facebook
         if (isset($error)) {
-            $session->set('facebook_access_token', null);
+            $session->set('facebook_short_live_access_token', null);
             $session->set('facebook_user', null);
             $session->set('facebook_error', 'FACEBOOK_ERROR');
         } else {
@@ -74,6 +74,8 @@ class FacebookController extends Controller {
 
             $my_url = $this->generateUrl('facebook_end_dailog', array(), true);
 
+            //get short-live access token this is the one that will be stored in the session 
+            //and also we can get long-live access token from it
             if ($request->query->get('state') == $container->getParameter('fb_app_state')) {
                 $token_url = 'https://graph.facebook.com/oauth/access_token?'
                         . 'client_id=' . $container->getParameter('fb_app_id') . '&redirect_uri=' . urlencode($my_url)
@@ -84,18 +86,18 @@ class FacebookController extends Controller {
                 parse_str($response, $params);
                 if ($params['access_token']) {
                     $session->set('facebook_error', null);
-                    $session->set('facebook_access_token', $params['access_token']);
+                    $session->set('facebook_short_live_access_token', $params['access_token']);
                     //get user and set it in session
                     $graph_url = 'https://graph.facebook.com/me?access_token=' . $params['access_token'];
                     $faceUser = json_decode(file_get_contents($graph_url));
                     $session->set('facebook_user', $faceUser);
                 } else {
-                    $session->set('facebook_access_token', null);
+                    $session->set('facebook_short_live_access_token', null);
                     $session->set('facebook_user', null);
                     $session->set('facebook_error', 'ACCESS_TOKEN_ERROR');
                 }
             } else {
-                $session->set('facebook_access_token', null);
+                $session->set('facebook_short_live_access_token', null);
                 $session->set('facebook_user', null);
                 $session->set('facebook_error', 'MISMATCH_FACEBOOK_STATE');
             }
@@ -111,23 +113,23 @@ class FacebookController extends Controller {
         $request = $this->getRequest();
 
         $session = $this->get('session');
-        $faceuser = $session->get('facebook_user');
-        $fb_access_token = $session->get('facebook_access_token');
-        if ($fb_access_token) {
-            
-        } else {
-            
-        }
-        $fb_user_id = $faceuser->id;
-        //get the user required page from the configuration file
-        $userPageName = $this->container->getParameter('fb_page_name');
-        //check if page in the config file the user is admin of it
-        $pageExist = $this->CheckAdminUserPage($fb_user_id, $fb_access_token, $userPageName);
+        //get the translator
+        $translator = $this->get('translator');
 
-        if ($pageExist) {
+        $faceuser = $session->get('facebook_user');
+        $shortLive_access_token = $session->get('facebook_short_live_access_token');
+        if ($shortLive_access_token) {
+           //using the short-live access token get the long-live one
+            $params = $this->getLongLiveFaceboockAccessToken($shortLive_access_token);
+            // long live access token
+            $longLive_access_token = $params['access_token'];
+            
+            $fb_user_id = $faceuser->id;
+            //get the user required page from the configuration file
+            $userPageName = $this->container->getParameter('fb_page_name');
             //now we need access token for this page
             //get the admin accounts and search for this page
-            $pages = $this->adminUserPagesAccess($fb_user_id, $fb_access_token);
+            $pages = $this->adminUserPagesAccess($fb_user_id, $longLive_access_token);
             //decode the data
             $pagesData = json_decode($pages);
             //initialize the page found flag
@@ -158,7 +160,9 @@ class FacebookController extends Controller {
                         }
                         //set the tokens in array of parameters
                         $value['parameters']['fb_user_id'] = $fb_user_id;
-                        $value['parameters']['fb_access_token'] = $fb_access_token;
+                        //save long-live access token in config file
+                        $value['parameters']['fb_access_token'] = $longLive_access_token;
+                        $value['parameters']['fb_access_token_expiration_date'] = date('d-m-Y', time()+$params['expires']);
                         $value['parameters']['fb_page_access_token'] = $page->access_token;
                         $value['parameters']['fb_page_id'] = $page->id;
                         //create a new yaml dumper
@@ -191,15 +195,40 @@ class FacebookController extends Controller {
                 $message = 'the page requested is not correct please go to the <a href="' . $session->get('currentLocationUrl') . '">configurations page</a> and edit fb page name';
             }
         } else {
-            $message = 'the page requested is not correct please go to the <a href="' . $session->get('currentLocationUrl') . '">configurations page</a> and edit fb page name';
+            $message = 'invalid access token';
         }
+
         return $this->render('::general_admin.html.twig', array(
                     'message' => $message
                 ));
     }
-
     /**
+     * method that take valid short-live access token that we get from facebook dialog
+     * and The returned access_token will have a fresh long-lived expiration time, 
+     * however, the access_token itself may or may not be the same as 
+     * the previously granted long-lived access_token.
+     * @param type $shortLive_access_token 
+     */
+    public static function getLongLiveFaceboockAccessToken($shortLive_access_token){
+        // get long live access token using short live access token
+            $token_url = 'https://graph.facebook.com/oauth/access_token?'
+                    . 'client_id=' . $this->container->getParameter('fb_app_id')
+                    . '&client_secret=' . $this->container->getParameter('fb_app_secret')
+                    . '&grant_type=fb_exchange_token'
+                    . '&fb_exchange_token=' . $shortLive_access_token;
+
+            $response = @file_get_contents($token_url);
+            $params = null;
+            parse_str($response, $params);
+            return $params;
+    }
+    /** 
      * method that check that the page is in user page that adminstriate them
+     *
+     * @param type $userFacebookAccountId 
+     * @param type $accessToken (valid access token)
+     * @param type $pageName
+     * @return type 
      */
     public static function CheckAdminUserPage($userFacebookAccountId, $accessToken, $pageName) {
         $query = "SELECT+page_id,name+from+page+WHERE+name='%s'+AND+page_id+IN+(SELECT+page_id+from+page_admin+WHERE+uid=%s)";
