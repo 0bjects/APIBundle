@@ -120,7 +120,7 @@ class FacebookController extends Controller {
         $shortLive_access_token = $session->get('facebook_short_live_access_token');
         if ($shortLive_access_token) {
            //using the short-live access token get the long-live one
-            $params = $this->getLongLiveFaceboockAccessToken($shortLive_access_token);
+            $params = $this->getLongLiveFaceboockAccessToken($this->container->getParameter('fb_app_id'),$this->container->getParameter('fb_app_secret'),$shortLive_access_token);
             // long live access token
             $longLive_access_token = $params['access_token'];
             
@@ -209,11 +209,11 @@ class FacebookController extends Controller {
      * the previously granted long-lived access_token.
      * @param type $shortLive_access_token 
      */
-    public static function getLongLiveFaceboockAccessToken($shortLive_access_token){
+    public static function getLongLiveFaceboockAccessToken($appId,$appSecret,$shortLive_access_token){
         // get long live access token using short live access token
             $token_url = 'https://graph.facebook.com/oauth/access_token?'
-                    . 'client_id=' . $this->container->getParameter('fb_app_id')
-                    . '&client_secret=' . $this->container->getParameter('fb_app_secret')
+                    . 'client_id=' . $appId
+                    . '&client_secret=' . $appSecret
                     . '&grant_type=fb_exchange_token'
                     . '&fb_exchange_token=' . $shortLive_access_token;
 
