@@ -18,22 +18,6 @@ get_last_twitts:
     pattern: /twitts/{count}
     defaults: { _controller: ObjectsAPIBundle:Twitter:getLastTwitts }
 
-Facebook_token:
-    pattern:  /facebook/token/{route}
-    defaults: { _controller: ObjectsAPIBundle:Facebook:token }
-
-Facebook_Data:
-    pattern:  /facebook/user/{route}
-    defaults: { _controller: ObjectsAPIBundle:Facebook:getFacebookUser }
-
-Facebook_login_btn:
-    pattern:  /fblogin/{size}/{text}
-    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookLogin }
-
-Facebook_login_check:
-    pattern:  /facebook/login
-    defaults: { _controller: ObjectsAPIBundle:Facebook:facebook }
-
 facebook_app_id:
     pattern:  /facebook/app/id
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }
@@ -41,3 +25,7 @@ facebook_app_id:
 facebook_end_dailog:
     pattern:  /facebookenddialog
     defaults: { _controller: ObjectsAPIBundle:Facebook:endDialog }
+    
+facebook_one_user_handel:
+    pattern:  /facebookoneuserhandel
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }
