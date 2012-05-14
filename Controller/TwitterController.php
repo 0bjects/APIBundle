@@ -77,6 +77,7 @@ class TwitterController extends Controller {
             $session->set('oauth_token', $access_token['oauth_token']);
             $session->set('oauth_token_secret', $access_token['oauth_token_secret']);
             $session->set('twitterId', $access_token['user_id']);
+            $session->set('screen_name', $access_token['screen_name']);
             //redirect the user to another action(signin or signup) to hide the parameters in the url
             return $this->redirect($this->generateUrl($session->get('redirectRoute'), array(), TRUE));
         } else {
@@ -244,13 +245,13 @@ class TwitterController extends Controller {
      * get the user data
      * @param string $consumerKey
      * @param string $consumerSecret
-     * @param string $oauth_token the user token
-     * @param string $oauth_token_secret the user token secret
+     * @param string $oauthToken the user token
+     * @param string $oauthTokenSecret the user token secret
      * @return mixed null or data of user
      */
     public static function getCredentials($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret) {
         //get a valid twitter connection of user
-        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauth_token, $oauth_token_secret);
+        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
         //get user data
         $content = @$connection->get('account/verify_credentials');
         //check if connection success with twitter
@@ -265,14 +266,14 @@ class TwitterController extends Controller {
      * get the user following accounts
      * @param string $consumerKey
      * @param string $consumerSecret
-     * @param string $oauth_token the user token
-     * @param string $oauth_token_secret the user token secret
+     * @param string $oauthToken the user token
+     * @param string $oauthTokenSecret the user token secret
      * @param string the userId
      * @return mixed null or a list of user following ids
      */
     public static function getFollowing($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret, $userId) {
         //get a valid twitter connection of user
-        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauth_token, $oauth_token_secret);
+        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
         //get user data
         $content = @$connection->get('friends/ids', array('user_id' => $userId));
         //check if connection success with twitter
@@ -288,6 +289,69 @@ class TwitterController extends Controller {
             }
         }
         return NULL;
+    }
+
+    /**
+     * this function download an image from twitter to the user required directory
+     * @author Mahmoud
+     * @param string $imageUrl the twitter image url
+     * @param string $uploadDir full path to the directory to save the downloaded image in without trailing '/'
+     * @return string|boolean the image name on success or FALSE on fail
+     */
+    public static function downloadTwitterImage($imageUrl, $uploadDir) {
+        //get the url parts
+        $urlParts = explode('/', $imageUrl);
+        //check if the url is correct
+        if ($urlParts && (count($urlParts) > 1)) {
+            //get the image name
+            $imageName = array_pop($urlParts);
+            //check if it is a default profile image
+            $pos = strpos($imageName, 'default_profile');
+            if ($pos === FALSE) {
+                //determine the image extension
+                $urlParts = explode('.', $imageUrl);
+                //check if the url is correct
+                if ($urlParts && (count($urlParts) > 1)) {
+                    //get the image extension from the url
+                    $extension = array_pop($urlParts);
+                    //check if the upload directory exists
+                    if (!@is_dir($uploadDir)) {
+                        //get the old umask
+                        $oldumask = umask(0);
+                        //not a directory probably the first time for this category try to create the directory
+                        $success = @mkdir($uploadDir, 0755, TRUE);
+                        //reset the umask
+                        umask($oldumask);
+                        //check if we created the folder
+                        if (!$success) {
+                            //could not create the folder
+                            return FALSE;
+                        }
+                    }
+                    //generate a random image name
+                    $img = uniqid();
+                    //check that the file name does not exist
+                    while (@file_exists("$uploadDir/$img.$extension")) {
+                        //try to find a new unique name
+                        $img = uniqid();
+                    }
+                    //download the large picture from the url to stream
+                    $fileContent = @file_get_contents(preg_replace('/_normal/', '', $imageUrl));
+                    //check if we got the image content
+                    if ($fileContent !== FALSE) {
+                        //save the image on the server
+                        $inserted = @file_put_contents("$uploadDir/$img.$extension", $fileContent);
+                        //check if the image saved
+                        if ($inserted !== FALSE) {
+                            //return the image name
+                            return "$img.$extension";
+                        }
+                    }
+                }
+            }
+        }
+        //could not download the image
+        return FALSE;
     }
 
 }
