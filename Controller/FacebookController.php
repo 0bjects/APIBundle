@@ -119,11 +119,11 @@ class FacebookController extends Controller {
         $faceuser = $session->get('facebook_user');
         $shortLive_access_token = $session->get('facebook_short_live_access_token');
         if ($shortLive_access_token) {
-           //using the short-live access token get the long-live one
-            $params = $this->getLongLiveFaceboockAccessToken($this->container->getParameter('fb_app_id'),$this->container->getParameter('fb_app_secret'),$shortLive_access_token);
+            //using the short-live access token get the long-live one
+            $params = $this->getLongLiveFaceboockAccessToken($this->container->getParameter('fb_app_id'), $this->container->getParameter('fb_app_secret'), $shortLive_access_token);
             // long live access token
             $longLive_access_token = $params['access_token'];
-            
+
             $fb_user_id = $faceuser->id;
             //get the user required page from the configuration file
             $userPageName = $this->container->getParameter('fb_page_name');
@@ -162,7 +162,7 @@ class FacebookController extends Controller {
                         $value['parameters']['fb_user_id'] = $fb_user_id;
                         //save long-live access token in config file
                         $value['parameters']['fb_access_token'] = $longLive_access_token;
-                        $value['parameters']['fb_access_token_expiration_date'] = date('d-m-Y', time()+$params['expires']);
+                        $value['parameters']['fb_access_token_expiration_date'] = date('d-m-Y', time() + $params['expires']);
                         $value['parameters']['fb_page_access_token'] = $page->access_token;
                         $value['parameters']['fb_page_id'] = $page->id;
                         //create a new yaml dumper
@@ -202,6 +202,7 @@ class FacebookController extends Controller {
                     'message' => $message
                 ));
     }
+
     /**
      * method that take valid short-live access token that we get from facebook dialog
      * and The returned access_token will have a fresh long-lived expiration time, 
@@ -209,20 +210,21 @@ class FacebookController extends Controller {
      * the previously granted long-lived access_token.
      * @param type $shortLive_access_token 
      */
-    public static function getLongLiveFaceboockAccessToken($appId,$appSecret,$shortLive_access_token){
+    public static function getLongLiveFaceboockAccessToken($appId, $appSecret, $shortLive_access_token) {
         // get long live access token using short live access token
-            $token_url = 'https://graph.facebook.com/oauth/access_token?'
-                    . 'client_id=' . $appId
-                    . '&client_secret=' . $appSecret
-                    . '&grant_type=fb_exchange_token'
-                    . '&fb_exchange_token=' . $shortLive_access_token;
+        $token_url = 'https://graph.facebook.com/oauth/access_token?'
+                . 'client_id=' . $appId
+                . '&client_secret=' . $appSecret
+                . '&grant_type=fb_exchange_token'
+                . '&fb_exchange_token=' . $shortLive_access_token;
 
-            $response = @file_get_contents($token_url);
-            $params = null;
-            parse_str($response, $params);
-            return $params;
+        $response = @file_get_contents($token_url);
+        $params = null;
+        parse_str($response, $params);
+        return $params;
     }
-    /** 
+
+    /**
      * method that check that the page is in user page that adminstriate them
      *
      * @param type $userFacebookAccountId 
@@ -311,12 +313,12 @@ class FacebookController extends Controller {
      * @param type $link
      * @return Response 
      */
-    public static function postOnUserWallAndFeedAction($accessToken, $message, $name, $link, $picture) {
+    public static function postOnUserWallAndFeedAction($accountId,$accessToken, $message, $name,$description, $link, $picture) {
 
         $fieldsString = "access_token=$accessToken&message=$message&name=$name&picture=$picture";
-        $fieldsString.="&link=$link&description=" . FACEBOOK_APP_DESCRIPTION;
+        $fieldsString.="&link=$link&description=$description";
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://graph.facebook.com/me/feed");
+        curl_setopt($ch, CURLOPT_URL, "https://graph.facebook.com/$accountId/feed");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $fieldsString);
@@ -325,4 +327,67 @@ class FacebookController extends Controller {
         return new Response('postOnUserWallAndFeed');
     }
 
+    /**
+     *
+     * @param type $faceboockAccountId
+     * @param type $uploadDir 
+     */
+    public static function downloadAccountImage($faceboockAccountId, $uploadDir) {
+        //download facebook profile image and saving it into db
+        //extracting the image extension from the url
+        $photoUrl = "http://graph.facebook.com/$faceboockAccountId/picture?type=large";
+        
+        //get the real url for picture to extract picture extension
+         $options = array(
+            CURLOPT_RETURNTRANSFER => true, // return web page
+            CURLOPT_HEADER => false, // don't return headers
+            CURLOPT_FOLLOWLOCATION => true, // follow redirects
+        );
+        $ch = curl_init($photoUrl);
+        curl_setopt_array($ch, $options);
+        $content = curl_exec($ch);
+        $header = curl_getinfo($ch);
+        curl_close($ch);
+        $imageRealUrl = $header['url'];
+        $urlParts = explode("/", $imageRealUrl);
+       
+        //get the image extension from the url
+        $extension = array_pop($urlParts);
+        //mahmoud
+        //check if the upload directory exists
+        if (!@is_dir($uploadDir)) {
+            //get the old umask
+            $oldumask = umask(0);
+            //not a directory probably the first time for this category try to create the directory
+            $success = @mkdir($uploadDir, 0755, TRUE);
+            //reset the umask
+            umask($oldumask);
+            //check if we created the folder
+            if (!$success) {
+                //could not create the folder
+                return FALSE;
+            }
+        }
+        //generate a random image name
+        $img = uniqid();
+        //check that the file name does not exist
+        while (@file_exists("$uploadDir/$img.$extension")) {
+            //try to find a new unique name
+            $img = uniqid();
+        }
+        //download the large picture from the url to stream
+        $imageContent = @file_get_contents($photoUrl);
+        //check if we got the image content
+        if ($imageContent !== FALSE) {
+            //save the image on the server
+            $inserted = @file_put_contents("$uploadDir/$img.$extension", $imageContent);
+            //check if the image saved
+            if ($inserted !== FALSE) {
+                //return the image name
+                return "$img.$extension";
+            }
+        }
+        //could not download the image
+        return FALSE;
+    }
 }
