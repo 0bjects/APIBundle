@@ -14,16 +14,13 @@ class FacebookController extends Controller {
 
     /**
      * this action take 
-     * @param Request $request
      * @param string $facebookUserHandleRoute (route that will handle facebook user)
      * @param string $permissions (facebook permissions require dseparated by ,)
      * @param string $cssClass (css class for designer to add desired image)
      * @param string $linkText (text written in the link)
      * @return html facebook link with desired css class and text
-
      */
     public function facebookButtonAction($facebookUserHandleRoute, $permissions, $cssClass='', $linkText = '') {
-
         $request = $this->getRequest();
         //get the session object
         $session = $request->getSession();
@@ -154,9 +151,7 @@ class FacebookController extends Controller {
                             $value = $yaml->parse($content);
                         } catch (\Exception $e) {
                             // an error occurred during parsing
-                            return $this->render('::general_admin.html.twig', array(
-                                        'message' => 'Unable to parse the YAML string: ' . $e->getMessage()
-                                    ));
+                            return new Response('Unable to parse the YAML string: ' . $e->getMessage());
                         }
                         //set the tokens in array of parameters
                         $value['parameters']['fb_user_id'] = $fb_user_id;
@@ -174,17 +169,17 @@ class FacebookController extends Controller {
                             exec('nohup ' . PHP_BINDIR . '/php ' . __DIR__ . '/../../../../app/console cache:clear -e prod > /dev/null 2>&1 &');
                             //set the success flag
                             $session = $request->getSession();
-                            $session->setFlash('notice', 'Your configurations were saved');
+                            $session->setFlash('notice', $translator->trans('saved successfully'));
                             //redirect the user to another action(signin or signup) to hide the parameters in the url
                             return $this->redirect($session->get('currentLocationUrl'));
                         } else {
                             //an error occured while writing to the file might be a permission error
-                            $message = "Could not write in the file: $configFile";
+                            $message = $translator->trans('write error') . ": $configFile";
                             break;
                         }
                     } else {
                         // an error occurred during parsing
-                        $message = "Unable to open the YAML file: $configFile";
+                        $message = $translator->trans('read error') . ": $configFile";
                         break;
                     }
                 }
@@ -198,9 +193,7 @@ class FacebookController extends Controller {
             $message = 'invalid access token';
         }
 
-        return $this->render('::general_admin.html.twig', array(
-                    'message' => $message
-                ));
+        return new Response($message);
     }
 
     /**
@@ -313,7 +306,7 @@ class FacebookController extends Controller {
      * @param type $link
      * @return Response 
      */
-    public static function postOnUserWallAndFeedAction($accountId,$accessToken, $message, $name,$description, $link, $picture) {
+    public static function postOnUserWallAndFeedAction($accountId, $accessToken, $message, $name, $description, $link, $picture) {
 
         $fieldsString = "access_token=$accessToken&message=$message&name=$name&picture=$picture";
         $fieldsString.="&link=$link&description=$description";
@@ -336,9 +329,9 @@ class FacebookController extends Controller {
         //download facebook profile image and saving it into db
         //extracting the image extension from the url
         $photoUrl = "http://graph.facebook.com/$faceboockAccountId/picture?type=large";
-        
+
         //get the real url for picture to extract picture extension
-         $options = array(
+        $options = array(
             CURLOPT_RETURNTRANSFER => true, // return web page
             CURLOPT_HEADER => false, // don't return headers
             CURLOPT_FOLLOWLOCATION => true, // follow redirects
@@ -350,7 +343,7 @@ class FacebookController extends Controller {
         curl_close($ch);
         $imageRealUrl = $header['url'];
         $urlParts = explode("/", $imageRealUrl);
-       
+
         //get the image extension from the url
         $extension = array_pop($urlParts);
         //mahmoud
@@ -390,4 +383,5 @@ class FacebookController extends Controller {
         //could not download the image
         return FALSE;
     }
+
 }
