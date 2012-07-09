@@ -1,6 +1,6 @@
 twitter_authentication:
-    pattern:  /twitterauthentication/{redirectRoute}
-    defaults: { _controller: ObjectsAPIBundle:Twitter:index }
+    pattern:  /twitterauthentication/{popup}/{redirectRoute}
+    defaults: { _controller: ObjectsAPIBundle:Twitter:index, popup: 'no' }
 
 twitter_callback:
     pattern:  /twitter

@@ -19,8 +19,9 @@ class TwitterController extends Controller {
     /**
      * the default Authentication route any new request to twitter has to go throw this action first
      * @param string $redirectRoute the route to redirect to after connecting to twitter
+     * @param string $popup if set to "yes" the twitter action will attempt to close a popup and redirect it is parent instade of redirect
      */
-    public function indexAction($redirectRoute) {
+    public function indexAction($redirectRoute, $popup = 'no') {
         //get the session object
         $session = $this->getRequest()->getSession();
         //get the translator
@@ -40,6 +41,11 @@ class TwitterController extends Controller {
                 $session->set('oauth_token', $request_token['oauth_token']);
                 $session->set('oauth_token_secret', $request_token['oauth_token_secret']);
                 $session->set('redirectRoute', $redirectRoute);
+                //check if we will set the popup flag
+                if ($popup == 'yes') {
+                    //set the flag
+                    $session->set('twitterPopup', TRUE);
+                }
 
                 /* Build authorize URL and redirect user to Twitter. */
                 $url = $connection->getAuthorizeURL($request_token['oauth_token']);
@@ -78,8 +84,20 @@ class TwitterController extends Controller {
             $session->set('oauth_token_secret', $access_token['oauth_token_secret']);
             $session->set('twitterId', $access_token['user_id']);
             $session->set('screen_name', $access_token['screen_name']);
+            //check if this is a popup
+            if ($session->get('twitterPopup', FALSE)) {
+                //remove the flag
+                $session->remove('twitterPopup');
+                //redirect the parent window and then close the popup
+                return new Response('
+                    <script>
+                        window.opener.top.location.href = "' . $this->generateUrl($session->get('redirectRoute')) . '";
+                        self.close();
+                    </script>
+                    ');
+            }
             //redirect the user to another action(signin or signup) to hide the parameters in the url
-            return $this->redirect($this->generateUrl($session->get('redirectRoute'), array(), TRUE));
+            return $this->redirect($this->generateUrl($session->get('redirectRoute')));
         } else {
             //something went wrong go to connect page again
             $session->clear();
