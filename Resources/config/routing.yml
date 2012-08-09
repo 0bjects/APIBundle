@@ -28,4 +28,13 @@ facebook_end_dailog:
     
 facebook_one_user_handel:
     pattern:  /facebookoneuserhandel
-    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }   
+    
+linkedInButton:
+    pattern:  /linkedInButton/{callbackUrl}/{popup}
+    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInButton, popup: 'no'}     
+    
+linkedInCallBack:
+    pattern:  /linkedInCallBack
+    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInCallBack}    
+    
