@@ -161,17 +161,16 @@ class LinkedinController extends Controller {
 
     /**
      * this function used to share html post
-     * use example LinkedinController::linkedInShare($this->container->getParameter('linkedin_api_key'), $this->container->getParameter('linkedin_secret_key'), $user_oauth_token, $user_oauth_token_secret, 'share comment','share title','share description','share url','share image url');
      * @author Ahmed <a.ibrahim@objects.ws>
      * @param string $appKey
      * @param string $appSecret
      * @param string $user_oauth_token
      * @param string $user_oauth_token_secret
-     * @param string $comment
-     * @param string $title
-     * @param string $submittedUrl
-     * @param string $submittedImageUrl
-     * @param string $description
+     * @param string $comment 'empty' if not
+     * @param string $title 'empty' if not
+     * @param string $submittedUrl 'empty' if not
+     * @param string $submittedImageUrl 'empty' if not
+     * @param string $description 'empty' if not
      * @return response done on success or faild on faild
      */
     static function linkedInShare($appKey, $appSecret, $user_oauth_token, $user_oauth_token_secret, $comment, $title, $description, $submittedUrl, $submittedImageUrl) {
@@ -218,7 +217,6 @@ class LinkedinController extends Controller {
 
     /**
      * this function will used to send string post
-     * use example LinkedinController::linkedInPostUpdate($this->container->getParameter('linkedin_api_key'), $this->container->getParameter('linkedin_secret_key'), $oauth_token, $oauth_token_secret, 'test 6 post');
      * @param string $appKey
      * @param string $appSecret
      * @param string $user_oauth_token
