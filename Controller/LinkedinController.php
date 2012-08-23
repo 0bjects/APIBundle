@@ -70,13 +70,13 @@ class LinkedinController extends Controller {
                 //redirect the parent window and then close the popup
                 return new Response('
                     <script>
-                        window.opener.top.location.href = "' . $this->generateUrl('linkedIn_user_data', array(), TRUE) . '";
+                        window.opener.top.location.href = "' . $this->generateUrl($session->get('callbackUrl'), array(), TRUE) . '";
                         self.close();
                     </script>
                     ');
             }
             //redirect the user to linkedInUserDataAction te get user data
-            return $this->redirect($this->generateUrl('linkedIn_user_data', array(), TRUE));
+            return $this->redirect($this->generateUrl($session->get('callbackUrl'), array(), TRUE));
         } else {
             //something went wrong go to connect page again
             $session->clear();
@@ -93,7 +93,7 @@ class LinkedinController extends Controller {
         //linkedIn config parameters
         $config = array('appKey' => $this->container->getParameter('linkedin_api_key'),
             'appSecret' => $this->container->getParameter('linkedin_secret_key'),
-            'callbackUrl' => $this->generateUrl($callbackUrl, array(), TRUE));
+            'callbackUrl' => $this->generateUrl('linkedInCallBack', array(), TRUE));
         //create new linkedIn oauth object
         $oauth = new \LinkedIn($config);
         //get request token
