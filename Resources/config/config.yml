@@ -14,4 +14,3 @@ parameters:
   fb_access_token_expiration_date:
   linkedin_api_key: m2njdpko54h8
   linkedin_secret_key: iX9GmxnblDra94VN
-  email_error_message: 'Invalid e-mail address'
