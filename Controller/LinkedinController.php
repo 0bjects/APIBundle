@@ -27,7 +27,7 @@ class LinkedinController extends Controller {
         //create new linkedIn oauth object
         $oauth = new \LinkedIn($config);
         $oauth->setTokenAccess($linkedIn_oauth);
-        $userData = $oauth->profile('~:(id,first-name,last-name,picture-url,headline,site-standard-profile-request,location:(country:(code)),summary,positions,skills,educations,courses)');
+        $userData = $oauth->profile('~:(id,first-name,last-name,picture-url,headline,site-standard-profile-request,location:(country:(code)),summary,positions,skills,educations,courses,email-address,phone-numbers,main-address,date-of-birth)');
 
         //check if connection success with twitter
         if (200 == $userData['info']['http_code']) {
