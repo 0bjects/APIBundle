@@ -13,7 +13,7 @@ use Symfony\Component\Yaml\Dumper;
 class FacebookController extends Controller {
 
     /**
-     * this action take 
+     * this action take
      * @param string $facebookUserHandleRoute (route that will handle facebook user)
      * @param string $permissions (facebook permissions require dseparated by ,)
      * @param string $cssClass (css class for designer to add desired image)
@@ -24,7 +24,7 @@ class FacebookController extends Controller {
         $request = $this->getRequest();
         //get the session object
         $session = $request->getSession();
-        //set facebookUserHandleRoute in session (route of action that will go to after 
+        //set facebookUserHandleRoute in session (route of action that will go to after
         //action action that set user and its token in session
         $session->set('facebookUserHandleRoute', $facebookUserHandleRoute);
 
@@ -32,7 +32,7 @@ class FacebookController extends Controller {
         $container = $this->container;
         //redirect url after dialog is finished
         $endDialogUrl = $this->generateUrl('facebook_end_dailog', array(), true);
-        //url to open facebook dialog 
+        //url to open facebook dialog
         $dialog_url = 'https://www.facebook.com/dialog/oauth?'
                 . 'client_id=' . $container->getParameter('fb_app_id')
                 . '&redirect_uri=' . urlencode($endDialogUrl)
@@ -47,8 +47,8 @@ class FacebookController extends Controller {
      * at the end of facebook dialog facebook redirect to this action
      * this action get access token of the logged user and then get facebook user
      * set the access token and the user in the session
-     * @return script to redirect the original window to the action that will handle 
-     * the facebook user in the session and close facebook dialog popup 
+     * @return script to redirect the original window to the action that will handle
+     * the facebook user in the session and close facebook dialog popup
      */
     public function endDialogAction() {
         $request = $this->getRequest();
@@ -71,7 +71,7 @@ class FacebookController extends Controller {
 
             $my_url = $this->generateUrl('facebook_end_dailog', array(), true);
 
-            //get short-live access token this is the one that will be stored in the session 
+            //get short-live access token this is the one that will be stored in the session
             //and also we can get long-live access token from it
             if ($request->query->get('state') == $container->getParameter('fb_app_state')) {
                 $token_url = 'https://graph.facebook.com/oauth/access_token?'
@@ -104,7 +104,7 @@ class FacebookController extends Controller {
 
     /**
      * the action is to handle one user data (admin) user
-     * @return type 
+     * @return type
      */
     public function facebookOneUserHandelerAction() {
         $request = $this->getRequest();
@@ -166,7 +166,8 @@ class FacebookController extends Controller {
                         //try to put the data dump into the file
                         if (@file_put_contents($configFile, $yaml) !== FALSE) {
                             //clear the cache for the new configurations to take effect
-                            exec('nohup ' . PHP_BINDIR . '/php ' . __DIR__ . '/../../../../app/console cache:clear -e prod > /dev/null 2>&1 &');
+                            exec(PHP_BINDIR . '/php-cli ' . __DIR__ . '/../../../../app/console cache:clear -e prod');
+                            exec(PHP_BINDIR . '/php-cli ' . __DIR__ . '/../../../../app/console cache:warmup --no-debug -e prod');
                             //set the success flag
                             $session = $request->getSession();
                             $session->setFlash('notice', $translator->trans('saved successfully'));
@@ -198,10 +199,10 @@ class FacebookController extends Controller {
 
     /**
      * method that take valid short-live access token that we get from facebook dialog
-     * and The returned access_token will have a fresh long-lived expiration time, 
-     * however, the access_token itself may or may not be the same as 
+     * and The returned access_token will have a fresh long-lived expiration time,
+     * however, the access_token itself may or may not be the same as
      * the previously granted long-lived access_token.
-     * @param type $shortLive_access_token 
+     * @param type $shortLive_access_token
      */
     public static function getLongLiveFaceboockAccessToken($appId, $appSecret, $shortLive_access_token) {
         // get long live access token using short live access token
@@ -220,10 +221,10 @@ class FacebookController extends Controller {
     /**
      * method that check that the page is in user page that adminstriate them
      *
-     * @param type $userFacebookAccountId 
+     * @param type $userFacebookAccountId
      * @param type $accessToken (valid access token)
      * @param type $pageName
-     * @return type 
+     * @return type
      */
     public static function CheckAdminUserPage($userFacebookAccountId, $accessToken, $pageName) {
         $query = "SELECT+page_id,name+from+page+WHERE+name='%s'+AND+page_id+IN+(SELECT+page_id+from+page_admin+WHERE+uid=%s)";
@@ -272,7 +273,7 @@ class FacebookController extends Controller {
     }
 
     /**
-     * method to retrieve access_tokens for pages and application the user administrates on facebook 
+     * method to retrieve access_tokens for pages and application the user administrates on facebook
      * @author Mirehan
      * @param type $accessToken user access_token
      * @param type $userFacebookAccountId
@@ -300,11 +301,11 @@ class FacebookController extends Controller {
     /**
      * static method that post on user wall
      * @author Mirehan
-     * @param type $accessToken 
+     * @param type $accessToken
      * @param type $message
      * @param type $picture
      * @param type $link
-     * @return Response 
+     * @return Response
      */
     public static function postOnUserWallAndFeedAction($accountId, $accessToken, $message, $name, $description, $link, $picture) {
 
@@ -323,7 +324,7 @@ class FacebookController extends Controller {
     /**
      *
      * @param type $faceboockAccountId
-     * @param type $uploadDir 
+     * @param type $uploadDir
      */
     public static function downloadAccountImage($faceboockAccountId, $uploadDir) {
         //download facebook profile image and saving it into db

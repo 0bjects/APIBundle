@@ -140,7 +140,8 @@ class TwitterController extends Controller {
             //try to put the data dump into the file
             if (@file_put_contents($configFile, $yaml) !== FALSE) {
                 //clear the cache for the new configurations to take effect
-                exec('nohup ' . PHP_BINDIR . '/php ' . __DIR__ . '/../../../../app/console cache:clear -e prod > /dev/null 2>&1 &');
+                exec(PHP_BINDIR . '/php-cli ' . __DIR__ . '/../../../../app/console cache:clear -e prod');
+                exec(PHP_BINDIR . '/php-cli ' . __DIR__ . '/../../../../app/console cache:warmup --no-debug -e prod');
                 //set the success message
                 $message = $translator->trans('saved successfully');
             } else {
