@@ -20,7 +20,7 @@ class FacebookController extends Controller {
      * @param string $linkText (text written in the link)
      * @return html facebook link with desired css class and text
      */
-    public function facebookButtonAction($facebookUserHandleRoute, $permissions, $cssClass='', $linkText = '') {
+    public function facebookButtonAction($facebookUserHandleRoute, $permissions, $cssClass = '', $linkText = '') {
         $request = $this->getRequest();
         //get the session object
         $session = $request->getSession();
@@ -121,6 +121,14 @@ class FacebookController extends Controller {
             // long live access token
             $longLive_access_token = $params['access_token'];
 
+            if (isset($params['expires'])) {
+                //timeStamp
+                $expires = time() + $params['expires'];
+            } else {
+                //after 60 days as default value according to facebook
+                $expires = time() + (60 * 24 * 60 * 60);
+            }
+
             $fb_user_id = $faceuser->id;
             //get the user required page from the configuration file
             $userPageName = $this->container->getParameter('fb_page_name');
@@ -157,7 +165,7 @@ class FacebookController extends Controller {
                         $value['parameters']['fb_user_id'] = $fb_user_id;
                         //save long-live access token in config file
                         $value['parameters']['fb_access_token'] = $longLive_access_token;
-                        $value['parameters']['fb_access_token_expiration_date'] = date('d-m-Y', time() + $params['expires']);
+                        $value['parameters']['fb_access_token_expiration_date'] = date('d-m-Y', $expires);
                         $value['parameters']['fb_page_access_token'] = $page->access_token;
                         $value['parameters']['fb_page_id'] = $page->id;
                         //create a new yaml dumper
