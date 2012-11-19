@@ -132,7 +132,7 @@ class LinkedIn {
 	const _URL_ACCESS                  = 'https://api.linkedin.com/uas/oauth/accessToken';
 	const _URL_API                     = 'https://api.linkedin.com';
 	const _URL_AUTH                    = 'https://www.linkedin.com/uas/oauth/authenticate?oauth_token=';
-	const _URL_REQUEST                 = 'https://api.linkedin.com/uas/oauth/requestToken?scope=r_fullprofile+r_emailaddress+r_contactinfo';
+	const _URL_REQUEST                 = 'https://api.linkedin.com/uas/oauth/requestToken?scope=r_fullprofile+r_emailaddress+r_contactinfo+r_network+rw_nus';
 	const _URL_REVOKE                  = 'https://api.linkedin.com/uas/oauth/invalidateToken';
 	
 	// Library version
