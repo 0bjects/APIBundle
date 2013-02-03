@@ -156,7 +156,7 @@ class TwitterController extends Controller {
     }
 
     /**
-     * this fucntion will post the user twitts to twitter
+     * this fucntion will post the user tweets to twitter
      * @param string $status the status to post for user max 140 char
      * @return \Symfony\Component\HttpFoundation\Response success or fail
      */
@@ -202,9 +202,9 @@ class TwitterController extends Controller {
     }
 
     /**
-     * this function will return the last $count twitted twitts
-     * @param integer $count the number of twitts to retrieve
-     * @return \Symfony\Component\HttpFoundation\Response the twitts with the js library to display them
+     * this function will return the last $count tweeted tweets
+     * @param integer $count the number of tweets to retrieve
+     * @return \Symfony\Component\HttpFoundation\Response the tweets with the js library to display them
      */
     public function getLastTweetsAction($count) {
         //get the container object
@@ -226,28 +226,28 @@ class TwitterController extends Controller {
         }
         //the response will be valid for next 6 hours
         $response->setSharedMaxAge(21600);
-        //the twitts ids array
-        $twittsIds = array();
+        //the tweets ids array
+        $tweetsIds = array();
         //get a valid twitter connection of user
         $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
-        //get user twitts
+        //get user tweets
         $tweets = @$connection->get('statuses/user_timeline', array('count' => $count));
         //check if it is a success request
         if (200 == $connection->http_code) {
             foreach ($tweets as $tweet) {
-                //add the tweet id to the array of twitts
-                $twittsIds [] = $tweet->id_str;
+                //add the tweet id to the array of tweets
+                $tweetsIds [] = $tweet->id_str;
             }
             //this flag is for adding the twitter js script tag only once
             $set = FALSE;
-            foreach ($twittsIds as $twittId) {
+            foreach ($tweetsIds as $twittId) {
                 //check if this is the first element
                 if (!$set) {
                     //first element add the js library to the response
                     $response->setContent('<script src="//platform.twitter.com/widgets.js" charset="utf-8"></script>');
                     $set = TRUE;
                 }
-                //request the twitts formated
+                //request the tweets formated
                 $tweets = @$connection->get('statuses/oembed', array('id' => $twittId, 'omit_script' => TRUE));
                 //check if connection success with twitter
                 if (200 == $connection->http_code) {
