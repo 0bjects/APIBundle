@@ -160,7 +160,7 @@ class TwitterController extends Controller {
      * @param string $status the status to post for user max 140 char
      * @return \Symfony\Component\HttpFoundation\Response success or fail
      */
-    public function twittAction($status) {
+    public function tweetAction($status) {
         //get the container object
         $container = $this->container;
         //get a valid twitter connection of user
@@ -169,34 +169,34 @@ class TwitterController extends Controller {
         @$connection->post('statuses/update', array('status' => $status));
         //check if connection success with twitter
         if (200 == $connection->http_code) {
-            //success twitt
+            //success tweet
             return new Response('success');
         } else {
-            //failed to twitt
+            //failed to tweet
             return new Response('fail');
         }
     }
 
     /**
-     * twitt any status to twitter
-     * @param string $status the status to twitt
+     * tweet any status to twitter
+     * @param string $status the status to tweet
      * @param string $consumerKey
      * @param string $consumerSecret
      * @param string $oauthToken
      * @param string $oauthTokenSecret
      * @return boolean true for success and false for any fail
      */
-    public static function twitt($status, $consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret) {
+    public static function tweet($status, $consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret) {
         //get a valid twitter connection of user
         $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
         //get user data
         @$connection->post('statuses/update', array('status' => $status));
         //check if connection success with twitter
         if (200 == $connection->http_code) {
-            //success twitt
+            //success tweet
             return TRUE;
         } else {
-            //failed to twitt
+            //failed to tweet
             return FALSE;
         }
     }
@@ -206,7 +206,7 @@ class TwitterController extends Controller {
      * @param integer $count the number of twitts to retrieve
      * @return \Symfony\Component\HttpFoundation\Response the twitts with the js library to display them
      */
-    public function getLastTwittsAction($count) {
+    public function getLastTweetsAction($count) {
         //get the container object
         $container = $this->container;
         //get the request object
@@ -231,12 +231,12 @@ class TwitterController extends Controller {
         //get a valid twitter connection of user
         $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
         //get user twitts
-        $twitts = @$connection->get('statuses/user_timeline', array('count' => $count));
+        $tweets = @$connection->get('statuses/user_timeline', array('count' => $count));
         //check if it is a success request
         if (200 == $connection->http_code) {
-            foreach ($twitts as $twitt) {
-                //add the twitt id to the array of twitts
-                $twittsIds [] = $twitt->id_str;
+            foreach ($tweets as $tweet) {
+                //add the tweet id to the array of twitts
+                $twittsIds [] = $tweet->id_str;
             }
             //this flag is for adding the twitter js script tag only once
             $set = FALSE;
@@ -248,11 +248,11 @@ class TwitterController extends Controller {
                     $set = TRUE;
                 }
                 //request the twitts formated
-                $twitts = @$connection->get('statuses/oembed', array('id' => $twittId, 'omit_script' => TRUE));
+                $tweets = @$connection->get('statuses/oembed', array('id' => $twittId, 'omit_script' => TRUE));
                 //check if connection success with twitter
                 if (200 == $connection->http_code) {
-                    //add the twitt content to the response
-                    $response->setContent($response->getContent() . $twitts->html);
+                    //add the tweet content to the response
+                    $response->setContent($response->getContent() . $tweets->html);
                 }
             }
         }
