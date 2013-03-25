@@ -267,8 +267,8 @@ class FacebookController extends Controller {
     /**
      * this function used to retuen user friends
      * @author ahmed
-     * @param type $uid
-     * @param type $accessToken
+     * @param integer $uid
+     * @param string $accessToken
      * @return type
      */
     public static function getUserFriends($uid, $accessToken) {
