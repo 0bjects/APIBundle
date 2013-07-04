@@ -265,6 +265,23 @@ class FacebookController extends Controller {
     }
 
     /**
+     * this function used to retuen user friends
+     * @author ahmed
+     * @param integer $uid
+     * @param string $accessToken
+     * @return type
+     */
+    public static function getUserFriends($uid, $accessToken) {
+        $url = "https://graph.facebook.com/$uid/friends?access_token=$accessToken";
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+    
+    /**
      * method to post on page/app wall
      * @author Mirehan
      */
