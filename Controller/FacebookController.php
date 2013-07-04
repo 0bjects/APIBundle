@@ -280,7 +280,7 @@ class FacebookController extends Controller {
         curl_close($ch);
         return $result;
     }
-    
+
     /**
      * method to post on page/app wall
      * @author Mirehan
@@ -368,42 +368,45 @@ class FacebookController extends Controller {
         $header = curl_getinfo($ch);
         curl_close($ch);
         $imageRealUrl = $header['url'];
-        $urlParts = explode("/", $imageRealUrl);
+        $urlParts = explode('.', $imageRealUrl);
+        //check if the url is correct
+        if ($urlParts && (count($urlParts) > 1)) {
 
-        //get the image extension from the url
-        $extension = array_pop($urlParts);
-        //mahmoud
-        //check if the upload directory exists
-        if (!@is_dir($uploadDir)) {
-            //get the old umask
-            $oldumask = umask(0);
-            //not a directory probably the first time for this category try to create the directory
-            $success = @mkdir($uploadDir, 0755, TRUE);
-            //reset the umask
-            umask($oldumask);
-            //check if we created the folder
-            if (!$success) {
-                //could not create the folder
-                return FALSE;
+            //get the image extension from the url
+            $extension = array_pop($urlParts);
+            //mahmoud
+            //check if the upload directory exists
+            if (!@is_dir($uploadDir)) {
+                //get the old umask
+                $oldumask = umask(0);
+                //not a directory probably the first time for this category try to create the directory
+                $success = @mkdir($uploadDir, 0755, TRUE);
+                //reset the umask
+                umask($oldumask);
+                //check if we created the folder
+                if (!$success) {
+                    //could not create the folder
+                    return FALSE;
+                }
             }
-        }
-        //generate a random image name
-        $img = uniqid();
-        //check that the file name does not exist
-        while (@file_exists("$uploadDir/$img.$extension")) {
-            //try to find a new unique name
+            //generate a random image name
             $img = uniqid();
-        }
-        //download the large picture from the url to stream
-        $imageContent = @file_get_contents($photoUrl);
-        //check if we got the image content
-        if ($imageContent !== FALSE) {
-            //save the image on the server
-            $inserted = @file_put_contents("$uploadDir/$img.$extension", $imageContent);
-            //check if the image saved
-            if ($inserted !== FALSE) {
-                //return the image name
-                return "$img.$extension";
+            //check that the file name does not exist
+            while (@file_exists("$uploadDir/$img.$extension")) {
+                //try to find a new unique name
+                $img = uniqid();
+            }
+            //download the large picture from the url to stream
+            $imageContent = @file_get_contents($photoUrl);
+            //check if we got the image content
+            if ($imageContent !== FALSE) {
+                //save the image on the server
+                $inserted = @file_put_contents("$uploadDir/$img.$extension", $imageContent);
+                //check if the image saved
+                if ($inserted !== FALSE) {
+                    //return the image name
+                    return "$img.$extension";
+                }
             }
         }
         //could not download the image
