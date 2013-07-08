@@ -21,20 +21,19 @@ get_last_twitts:
 facebook_app_id:
     pattern:  /facebook/app/id
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }
-    
+
 facebook_end_dailog:
     pattern:  /facebookenddialog
     defaults: { _controller: ObjectsAPIBundle:Facebook:endDialog }
-    
+
 facebook_one_user_handel:
     pattern:  /facebookoneuserhandel
-    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }   
-    
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }
+
 linkedInButton:
     pattern:  /linkedInButton/{callbackUrl}/{popup}
-    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInButton, popup: 'no'}     
-    
+    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInButton, popup: 'no'}
+
 linkedInCallBack:
     pattern:  /linkedInCallBack
-    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInCallBack}    
-    
+    defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInCallBack}
