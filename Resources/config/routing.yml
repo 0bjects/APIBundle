@@ -1,39 +1,39 @@
 twitter_authentication:
-    pattern:  /twitterauthentication/{popup}/{redirectRoute}
+    path:  /twitterauthentication/{popup}/{redirectRoute}
     defaults: { _controller: ObjectsAPIBundle:Twitter:index, popup: 'no' }
 
 twitter_callback:
-    pattern:  /twitter
+    path:  /twitter
     defaults: { _controller: ObjectsAPIBundle:Twitter:twitter }
 
 save_twitter_tokens:
-    pattern:  /twitter/save
+    path:  /twitter/save
     defaults: { _controller: ObjectsAPIBundle:Twitter:saveTwitterTokens }
 
 twitt:
-    pattern: /twitt/{status}
+    path: /twitt/{status}
     defaults: { _controller: ObjectsAPIBundle:Twitter:twitt }
 
 get_last_twitts:
-    pattern: /twitts/{count}
+    path: /twitts/{count}
     defaults: { _controller: ObjectsAPIBundle:Twitter:getLastTwitts }
 
 facebook_app_id:
-    pattern:  /facebook/app/id
+    path:  /facebook/app/id
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }
 
 facebook_end_dailog:
-    pattern:  /facebookenddialog
+    path:  /facebookenddialog
     defaults: { _controller: ObjectsAPIBundle:Facebook:endDialog }
 
 facebook_one_user_handel:
-    pattern:  /facebookoneuserhandel
+    path:  /facebookoneuserhandel
     defaults: { _controller: ObjectsAPIBundle:Facebook:facebookOneUserHandeler }
 
 linkedInButton:
-    pattern:  /linkedInButton/{callbackUrl}/{popup}
+    path:  /linkedInButton/{callbackUrl}/{popup}
     defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInButton, popup: 'no'}
 
 linkedInCallBack:
-    pattern:  /linkedInCallBack
+    path:  /linkedInCallBack
     defaults: { _controller: ObjectsAPIBundle:Linkedin:linkedInCallBack}
