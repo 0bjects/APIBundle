@@ -18,6 +18,10 @@ get_last_twitts:
     path: /twitts/{count}
     defaults: { _controller: ObjectsAPIBundle:Twitter:getLastTwitts }
 
+facebook_button:
+    path:  /facebookbutton/{facebookUserHandleRoute}/{permissions}/{cssClass}/{linkText}
+    defaults: { _controller: ObjectsAPIBundle:Facebook:facebookButton }
+
 facebook_app_id:
     path:  /facebook/app/id
     defaults: { _controller: ObjectsAPIBundle:Facebook:getFacbookApplicationId }

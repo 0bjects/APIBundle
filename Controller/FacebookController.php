@@ -20,7 +20,7 @@ class FacebookController extends Controller {
      * @param string $linkText (text written in the link)
      * @return html facebook link with desired css class and text
      */
-    public function facebookButtonAction($facebookUserHandleRoute, $permissions, $cssClass = '', $linkText = '') {
+    public function facebookButtonAction($facebookUserHandleRoute, $permissions, $cssClass, $linkText) {
         $request = $this->getRequest();
         //get the session object
         $session = $request->getSession();
