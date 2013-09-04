@@ -73,7 +73,6 @@ class GoogleController extends Controller {
                 </script>
                 ');
                 }
-                return $this->forward($controller);
                 return $this->redirect($this->generateUrl($redirectRoute));
             }
         } catch (\Exception $e) {
