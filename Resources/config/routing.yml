@@ -1,3 +1,7 @@
+google:
+    resource: "@ObjectsAPIBundle/Resources/config/routing/google.yml"
+    prefix:   /google
+
 twitter_authentication:
     path:  /twitterauthentication/{popup}/{redirectRoute}
     defaults: { _controller: ObjectsAPIBundle:Twitter:index, popup: 'no' }

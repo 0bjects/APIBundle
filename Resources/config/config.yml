@@ -3,6 +3,8 @@ parameters:
   consumer_secret: gFZLr6GpcakRxhzj6qWWjRqqAqVjBlEOxun6VRiXHo
   oauth_token: null
   oauth_token_secret: null
+  google_client_id: 848220778758-4b26oo6ie91je4ducp1matn2bp0ud8uo.apps.googleusercontent.com
+  google_client_secret: RikSNvAk1MFzmX3Eu9O4yMah
   fb_app_id: '190731834345740'
   fb_app_secret: ae3a926faaec553ac9b570eb78509e76
   fb_app_state: ae3a926faaec553ac9b570eb78509e76

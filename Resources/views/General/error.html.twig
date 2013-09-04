@@ -1,0 +1,13 @@
+{% extends '::base.html.twig' %}
+
+{% block title %}{% trans %}We are sorry !{% endtrans %}{% endblock %}
+
+{% block body %}
+
+{% for flashMessage in app.session.flashbag.get('googleRedirectRoute') %}
+<div class="alert alert-success">
+    {% trans %}Something went wrong, please{% endtrans %} <a href="{{ path('google_oauth', {'redirectRoute': flashMessage}) }}">{% trans %}try again{% endtrans %}</a>.<a href="#" class="close" data-dismiss="alert">&times;</a>
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,7 @@
+google_oauth:
+    path:  /oauth/{popup}/{redirectRoute}
+    defaults: { _controller: ObjectsAPIBundle:Google:oauth, popup: 'no' }
+
+google_oauth_callback:
+    path:  /oauth
+    defaults: { _controller: ObjectsAPIBundle:Google:oauthCallback }
