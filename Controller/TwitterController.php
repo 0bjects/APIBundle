@@ -156,28 +156,6 @@ class TwitterController extends Controller {
     }
 
     /**
-     * this fucntion will post the user tweets to twitter
-     * @param string $status the status to post for user max 140 char
-     * @return \Symfony\Component\HttpFoundation\Response success or fail
-     */
-    public function tweetAction($status) {
-        //get the container object
-        $container = $this->container;
-        //get a valid twitter connection of user
-        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
-        //get user data
-        @$connection->post('statuses/update', array('status' => $status));
-        //check if connection success with twitter
-        if (200 == $connection->http_code) {
-            //success tweet
-            return new Response('success');
-        } else {
-            //failed to tweet
-            return new Response('fail');
-        }
-    }
-
-    /**
      * tweet any status to twitter
      * @param string $status the status to tweet
      * @param string $consumerKey
@@ -201,64 +179,6 @@ class TwitterController extends Controller {
         }
     }
 
-    /**
-     * this function will return the last $count tweeted tweets
-     * @param integer $count the number of tweets to retrieve
-     * @return \Symfony\Component\HttpFoundation\Response the tweets with the js library to display them
-     */
-    public function getLastTweetsAction($count) {
-        //get the container object
-        $container = $this->container;
-        //get the request object
-        $request = $this->getRequest();
-        //create a new response for the user
-        $response = new Response();
-        //set the caching to every one
-        $response->setPublic();
-        //this date is used as an etag
-        $date = new \DateTime();
-        //set the response ETag
-        $response->setETag($date->format('dH'));
-        // Check that the Response is not modified for the given Request
-        if ($response->isNotModified($request)) {
-            // return the 304 Response immediately
-            return $response;
-        }
-        //the response will be valid for next 6 hours
-        $response->setSharedMaxAge(21600);
-        //the tweets ids array
-        $tweetsIds = array();
-        //get a valid twitter connection of user
-        $connection = new TwitterOAuth($container->getParameter('consumer_key'), $container->getParameter('consumer_secret'), $container->getParameter('oauth_token'), $container->getParameter('oauth_token_secret'));
-        //get user tweets
-        $tweets = @$connection->get('statuses/user_timeline', array('count' => $count));
-        //check if it is a success request
-        if (200 == $connection->http_code) {
-            foreach ($tweets as $tweet) {
-                //add the tweet id to the array of tweets
-                $tweetsIds [] = $tweet->id_str;
-            }
-            //this flag is for adding the twitter js script tag only once
-            $set = FALSE;
-            foreach ($tweetsIds as $twittId) {
-                //check if this is the first element
-                if (!$set) {
-                    //first element add the js library to the response
-                    $response->setContent('<script src="//platform.twitter.com/widgets.js" charset="utf-8"></script>');
-                    $set = TRUE;
-                }
-                //request the tweets formated
-                $tweets = @$connection->get('statuses/oembed', array('id' => $twittId, 'omit_script' => TRUE));
-                //check if connection success with twitter
-                if (200 == $connection->http_code) {
-                    //add the tweet content to the response
-                    $response->setContent($response->getContent() . $tweets->html);
-                }
-            }
-        }
-        //return the response
-        return $response;
-    }
 
     /**
      * get the user data
