@@ -2,14 +2,11 @@
 
 namespace Objects\APIBundle\Controller;
 
-/* load library. */
-require_once __DIR__ . '/../libraries/abraham/twitteroauth.php';
-
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\Yaml\Dumper;
-use OAuth\TwitterOAuth;
+use TwitterOAuth\Api as TwitterOAuth;
 
 /**
  * @author mahmoud
