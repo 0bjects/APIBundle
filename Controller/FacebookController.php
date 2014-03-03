@@ -178,7 +178,7 @@ class FacebookController extends Controller {
                             exec(PHP_BINDIR . '/php-cli ' . __DIR__ . '/../../../../app/console cache:warmup --no-debug -e prod');
                             //set the success flag
                             $session = $request->getSession();
-                            $session->setFlash('notice', $translator->trans('saved successfully'));
+                            $session->getFlashBag()->add('notice', $translator->trans('saved successfully'));
                             //redirect the user to another action(signin or signup) to hide the parameters in the url
                             return $this->redirect($session->get('currentLocationUrl'));
                         } else {
