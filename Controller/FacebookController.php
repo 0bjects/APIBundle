@@ -314,6 +314,25 @@ class FacebookController extends Controller {
     }
 
     /**
+     * @author Mahmoud
+     */
+    public static function getPageFeed($pageAccessToken, $pageId, \DateTime $since = null, \DateTime $until = null) {
+        $ch = curl_init();
+        $requestUrl = "https://graph.facebook.com/$pageId/feed?access_token=$pageAccessToken";
+        if ($since) {
+            $requestUrl .= '&since=' . $since->getTimestamp();
+        }
+        if ($until) {
+            $requestUrl .= '&until=' . $until->getTimestamp();
+        }
+        curl_setopt($ch, CURLOPT_URL, $requestUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
+    /**
      * this action returns the facebook application id
      * used to render in any iframe that needs the application id
      * @author Mahmoud
