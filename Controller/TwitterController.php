@@ -131,6 +131,7 @@ class TwitterController extends Controller {
             //set the tokens in array of parameters
             $value['parameters']['oauth_token'] = $session->get('oauth_token');
             $value['parameters']['oauth_token_secret'] = $session->get('oauth_token_secret');
+            $value['parameters']['twitter_user_name'] = $session->get('screen_name');
             //create a new yaml dumper
             $dumper = new Dumper();
             $yaml = $dumper->dump($value, 3);
