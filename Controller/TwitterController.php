@@ -290,4 +290,27 @@ class TwitterController extends Controller {
         return FALSE;
     }
 
+    /**
+     * get last user tweets
+     * @param string $consumerKey
+     * @param string $consumerSecret
+     * @param string $oauthToken
+     * @param string $oauthTokenSecret
+     * @param integer $userName
+     * @param integer $count
+     * @return array of user tweets
+     */
+    public static function getLastTweets($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret, $userName, $count = 2) {
+        //get a valid twitter connection of user
+        $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
+        //get user data
+        $data = @$connection->get('statuses/user_timeline', array('screen_name' => $userName, 'count' => $count));
+        //check if connection success with twitter
+        if (200 == $connection->http_code) {
+            //success
+            return $data;
+        }
+        return array();
+    }
+
 }
