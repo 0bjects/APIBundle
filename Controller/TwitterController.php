@@ -299,13 +299,22 @@ class TwitterController extends Controller {
      * @param string $oauthTokenSecret
      * @param integer $userName
      * @param integer $count
+     * @param boolean $excludeReplies
+     * @param integer $lastTwitterPostId
      * @return array of user tweets
      */
-    public static function getLastTweets($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret, $userName, $count = 2) {
+    public static function getLastTweets($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret, $userName, $count = 2, $excludeReplies = true, $lastTwitterPostId = null) {
         //get a valid twitter connection of user
         $connection = new TwitterOAuth($consumerKey, $consumerSecret, $oauthToken, $oauthTokenSecret);
-        //get user data
-        $data = @$connection->get('statuses/user_timeline', array('screen_name' => $userName, 'count' => $count));
+        $parameters = array(
+            'exclude_replies' => $excludeReplies,
+            'screen_name' => $userName,
+            'count' => $count
+        );
+        if ($lastTwitterPostId) {
+            $parameters['since_id'] = $lastTwitterPostId;
+        }
+        $data = @$connection->get('statuses/user_timeline', $parameters);
         //check if connection success with twitter
         if (200 == $connection->http_code) {
             //success
